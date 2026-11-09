@@ -86,12 +86,8 @@ else
   warn "'$WHEN_BIN next --json' failed (network or cache?). The widget will show an error until it works."
 fi
 
-for dep in notify-send pgrep pkill; do
-  command -v "$dep" >/dev/null 2>&1 || warn "'$dep' not found: $(
-    case "$dep" in
-      notify-send) echo "reminders won't work (install libnotify)";;
-      *) echo "alarm toggle won't work (install procps)";;
-    esac)"
+for dep in pgrep pkill; do
+  command -v "$dep" >/dev/null 2>&1 || warn "'$dep' not found: alarm toggle won't work (install procps)"
 done
 
 # ── Install ──

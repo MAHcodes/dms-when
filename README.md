@@ -12,7 +12,7 @@ A DankBar widget for the [`when`](https://github.com/MAHcodes/when) prayer-times
 
 - DankMaterialShell on niri (or any Wayland compositor DMS supports)
 - `when` installed (`go install github.com/MAHcodes/when@latest`) with `when next --json` working
-- `notify-send` (libnotify) for reminders, and `pgrep`/`pkill` for the alarm toggle
+- `pgrep`/`pkill` for the alarm toggle
 
 ## Install
 
@@ -49,9 +49,8 @@ re-sync.
 ## Features
 
 - Bar pill: mosque icon in the accent color (can be hidden), current period → next prayer, time, live countdown (all toggleable, as in the COSMIC applet), 12/24 h, automatic icon-only mode when all text options are off, horizontal and vertical bars
-- Popout: next-prayer hero card with time, optional HH:MM:SS countdown, optional period progress bar and progress ring (all off by default), full prayer list with the next prayer highlighted, manual refresh button (`when refresh`)
+- Popout: next-prayer hero card with time, optional HH:MM:SS countdown, optional period progress ring (thick rounded ring around the prayer icon) and progress bar (all off by default), full prayer list with the next prayer highlighted, manual refresh button (`when refresh`)
 - Azan alarm switch: starts `when alarm --daemon`, stops it with `pkill`, and detects a daemon started elsewhere
-- Optional reminder N minutes before each prayer, and optional notification at prayer time
 - Error card with last-known data if `when` fails
 
 ## Troubleshooting

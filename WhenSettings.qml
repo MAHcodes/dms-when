@@ -111,52 +111,6 @@ PluginSettings {
         defaultValue: false
     }
 
-    // ── Notifications ──
-    StyledText {
-        width: parent.width
-        text: "Notifications"
-        font.pixelSize: Theme.fontSizeMedium
-        font.weight: Font.Bold
-        color: Theme.primary
-        topPadding: Theme.spacingM
-    }
-
-    SelectionSetting {
-        settingKey: "remindMinutes"
-        label: "Reminder before prayer"
-        description: "Sends a desktop notification this long before the next prayer"
-        options: [
-            {
-                label: "Off",
-                value: "0"
-            },
-            {
-                label: "5 minutes",
-                value: "5"
-            },
-            {
-                label: "10 minutes",
-                value: "10"
-            },
-            {
-                label: "15 minutes",
-                value: "15"
-            },
-            {
-                label: "30 minutes",
-                value: "30"
-            }
-        ]
-        defaultValue: "15"
-    }
-
-    ToggleSetting {
-        settingKey: "notifyAtTime"
-        label: "Notify at prayer time"
-        description: "Leave off if you run `when alarm`, which already notifies and plays the azan"
-        defaultValue: false
-    }
-
     // ── CLI ──
     StyledText {
         width: parent.width

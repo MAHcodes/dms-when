@@ -28,11 +28,6 @@ PluginComponent {
         var p = pluginData.whenPath;
         return (p && String(p).trim() !== "") ? String(p).trim() : "when";
     }
-    readonly property int remindMinutes: {
-        var v = parseInt(pluginData.remindMinutes);
-        return isNaN(v) ? 15 : v;
-    }
-    readonly property bool notifyAtTime: pluginData.notifyAtTime ?? false
     readonly property bool showName: pluginData.showName ?? true
     readonly property bool showTime: pluginData.showTime ?? true
     readonly property bool showCountdown: pluginData.showCountdown ?? true
@@ -59,8 +54,6 @@ PluginComponent {
     // tick bookkeeping (monotonic deltas only, no calendar date involved)
     property double lastTickMs: 0
     property double lastRollMs: 0
-    property string reminderKey: ""
-    property string arrivedKey: ""
 
     // ───────────────────────── Derived ─────────────────────────
     function findIndex(list, name) {
@@ -89,7 +82,7 @@ PluginComponent {
         return d * 60;
     }
     readonly property real progress: periodTotalSec > 0 ? Math.min(1, Math.max(0, 1 - remainingSec / periodTotalSec)) : 0
-    readonly property int urgentWindowSec: (remindMinutes > 0 ? remindMinutes : 15) * 60
+    readonly property int urgentWindowSec: 15 * 60
     readonly property bool isUrgent: hasData && remainingSec > 0 && remainingSec <= urgentWindowSec
 
     // Material You 3 palette, mapped onto DMS theme tokens with safe fallbacks
@@ -414,11 +407,6 @@ PluginComponent {
         onTriggered: root.checkAlarm()
     }
 
-    // ───────────────────────── Notifications ─────────────────────────
-    function notify(body) {
-        Quickshell.execDetached(["notify-send", "-a", "When Prayer", "-u", "normal", "-i", "appointment-soon", "Prayer times", body]);
-    }
-
     // ───────────────────────── Clock tick (counter, not a calendar) ─────────────────────────
     Timer {
         id: tickTimer
@@ -441,19 +429,7 @@ PluginComponent {
         if (remainingSec > 0)
             remainingSec -= 1;
 
-        var key = nextName + "|" + nextTime;
-
-        if (remindMinutes > 0 && remainingSec > 0 && remainingSec <= remindMinutes * 60 && reminderKey !== key) {
-            reminderKey = key;
-            notify(nextName + " in " + Math.ceil(remainingSec / 60) + " min (at " + fmtTime(nextTime) + ")");
-        }
-
         if (remainingSec <= 0) {
-            if (arrivedKey !== key) {
-                arrivedKey = key;
-                if (notifyAtTime)
-                    notify("Time for " + nextName);
-            }
             // Ask `when` what comes next (retry every 2s until it moves on)
             if (now - lastRollMs > 2000) {
                 lastRollMs = now;
@@ -749,7 +725,7 @@ PluginComponent {
 
                         Item {
                             width: parent.width
-                            height: 52
+                            height: 60
 
                             Row {
                                 anchors.left: parent.left
@@ -757,19 +733,29 @@ PluginComponent {
                                 spacing: 12
 
                                 Item {
-                                    width: 52
-                                    height: 52
+                                    id: ring
+                                    width: 60
+                                    height: 60
                                     anchors.verticalCenter: parent.verticalCenter
+
+                                    property real shown: root.progress
+                                    Behavior on shown {
+                                        NumberAnimation {
+                                            duration: 900
+                                            easing.type: Easing.OutCubic
+                                        }
+                                    }
+                                    onShownChanged: ringCanvas.requestPaint()
 
                                     Canvas {
                                         id: ringCanvas
                                         anchors.fill: parent
                                         visible: root.showProgressRing
-                                        property real ringProgress: root.progress
                                         property color ringColor: root.cPrimary
                                         property color trackColor: Theme.withAlpha(root.cOnPrimaryContainer, 0.16)
 
-                                        onRingProgressChanged: requestPaint()
+                                        antialiasing: true
+                                        Component.onCompleted: requestPaint()
                                         onRingColorChanged: requestPaint()
                                         onTrackColorChanged: requestPaint()
                                         onWidthChanged: requestPaint()
@@ -781,15 +767,16 @@ PluginComponent {
                                             ctx.clearRect(0, 0, width, height);
                                             var cx = width / 2;
                                             var cy = height / 2;
-                                            var r = Math.min(width, height) / 2 - 2;
-                                            ctx.lineWidth = 3;
+                                            var lw = 7;
+                                            var r = (Math.min(width, height) - lw) / 2;
+                                            ctx.lineWidth = lw;
                                             ctx.lineCap = "round";
                                             ctx.beginPath();
                                             ctx.arc(cx, cy, r, 0, Math.PI * 2);
                                             ctx.strokeStyle = trackColor;
                                             ctx.stroke();
-                                            var p = Math.max(0, Math.min(1, ringProgress));
-                                            if (p > 0) {
+                                            var p = Math.max(0, Math.min(1, ring.shown));
+                                            if (p > 0.005) {
                                                 ctx.beginPath();
                                                 ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * p);
                                                 ctx.strokeStyle = ringColor;
@@ -803,12 +790,12 @@ PluginComponent {
                                         width: 44
                                         height: 44
                                         radius: 22
-                                        color: root.cPrimary
+                                        color: root.showProgressRing ? "transparent" : root.cPrimary
                                         DankIcon {
                                             anchors.centerIn: parent
                                             name: root.prayerIcon(root.nextName)
                                             size: 24
-                                            color: root.cOnPrimary
+                                            color: root.showProgressRing ? root.cPrimary : root.cOnPrimary
                                         }
                                     }
                                 }
@@ -985,7 +972,7 @@ PluginComponent {
                             height: 40
                             radius: 20
                             anchors.verticalCenter: parent.verticalCenter
-                            color: root.alarmRunning ? root.cPrimary : root.cSecContainer
+                            color: root.alarmRunning ? Qt.rgba(root.cPrimary.r, root.cPrimary.g, root.cPrimary.b, 0.16) : Qt.rgba(Theme.surfaceText.r, Theme.surfaceText.g, Theme.surfaceText.b, 0.08)
                             Behavior on color {
                                 ColorAnimation {
                                     duration: 200
@@ -995,7 +982,7 @@ PluginComponent {
                                 anchors.centerIn: parent
                                 name: root.alarmRunning ? "notifications_active" : "notifications_off"
                                 size: 22
-                                color: root.alarmRunning ? root.cOnPrimary : Theme.surfaceVariantText
+                                color: root.alarmRunning ? root.cPrimary : Theme.surfaceVariantText
                             }
                         }
                         Column {
