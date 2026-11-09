@@ -224,9 +224,12 @@ PluginComponent {
             allProc.running = true;
     }
 
+    // Refresh button: refetch prayer data AND re-sync the alarm switch with
+    // the real `when alarm` process (killed or started from outside the widget).
     function forceRefresh() {
         if (!refreshProc.running)
             refreshProc.running = true;
+        checkAlarm();
     }
 
     function checkAlarm() {
@@ -626,6 +629,16 @@ PluginComponent {
             implicitWidth: 380
             implicitHeight: content.implicitHeight + 24
 
+            // While the popout is open: sync the alarm switch on open and every 3 s,
+            // so killing or starting `when alarm` elsewhere is reflected right away.
+            Component.onCompleted: root.checkAlarm()
+            Timer {
+                interval: 3000
+                repeat: true
+                running: true
+                onTriggered: root.checkAlarm()
+            }
+
             Column {
                 id: content
                 x: 12
@@ -672,7 +685,7 @@ PluginComponent {
                         anchors.right: parent.right
                         anchors.verticalCenter: parent.verticalCenter
                         icon: "refresh"
-                        spinning: refreshProc.running
+                        spinning: refreshProc.running || alarmCheckProc.running
                         onClicked: root.forceRefresh()
                     }
                 }
