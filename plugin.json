@@ -1,7 +1,7 @@
 {
   "id": "whenPrayer",
   "name": "When Prayer Times",
-  "description": "Islamic prayer times for DankBar, powered by the `when` CLI (Al-Manar). Material You 3 popout, live countdown and azan alarm control.",
+  "description": "Islamic prayer times for DankBar, powered by the `when` CLI.",
   "version": "1.0.0",
   "author": "MAHcodes",
   "icon": "mosque",
