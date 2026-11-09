@@ -585,8 +585,8 @@ PluginComponent {
             DankIcon {
                 visible: root.showIcon
                 name: "mosque"
-                size: Theme.iconSize - 6
-                color: root.errorText !== "" && !root.hasData ? root.cError : root.cPrimary
+                size: Theme.iconSize - 10
+                color: root.errorText !== "" && !root.hasData ? root.cError : Theme.surfaceText
                 anchors.verticalCenter: parent.verticalCenter
             }
             StyledText {
